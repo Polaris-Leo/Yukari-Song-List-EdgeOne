@@ -285,7 +285,7 @@
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root"><div style="display:flex;justify-content:center;align-items:center;min-height:100vh;color:#64748b;font-size:1rem;">验证身份中...</div></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
@@ -727,8 +727,20 @@
             );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<AdminApp />);
+        (async () => {
+            try {
+                const res = await fetch('/admin/api/songs?page=1&limit=1');
+                if (res.status === 401) {
+                    window.location.replace('/login.html');
+                    return;
+                }
+            } catch {
+                window.location.replace('/login.html');
+                return;
+            }
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<AdminApp />);
+        })();
     </script>
 </body>
 </html>

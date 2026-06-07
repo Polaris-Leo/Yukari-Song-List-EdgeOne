@@ -574,11 +574,18 @@
                         const rows = text.split(/\r?\n/);
                         const csvSongs = [];
                         const parseLine = (line) => {
-                            const res = []; let cur = '', inQ = false;
-                            for (let c of line) {
-                                if (c === '"') inQ = !inQ;
-                                else if (c === ',' && !inQ) { res.push(cur.trim()); cur = ''; }
-                                else cur += c;
+                            const res = []; let cur = '', inQ = false, i = 0;
+                            while (i < line.length) {
+                                const c = line[i];
+                                if (c === '"') {
+                                    if (inQ && line[i + 1] === '"') { cur += '"'; i += 2; continue; }
+                                    inQ = !inQ;
+                                } else if (c === ',' && !inQ) {
+                                    res.push(cur.trim()); cur = '';
+                                } else {
+                                    cur += c;
+                                }
+                                i++;
                             }
                             res.push(cur.trim());
                             return res;

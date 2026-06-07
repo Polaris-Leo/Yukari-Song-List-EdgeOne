@@ -5,7 +5,7 @@
  */
 export async function onRequestGet(context) {
   try {
-    const existing = await MY_KV.get('songs:all');
+    const existing = await Yukari_Songs.get('songs:all');
     if (existing !== null) {
       const songs = JSON.parse(existing);
       return Response.json({
@@ -14,7 +14,7 @@ export async function onRequestGet(context) {
       });
     }
 
-    await MY_KV.put('songs:all', JSON.stringify([]));
+    await Yukari_Songs.put('songs:all', JSON.stringify([]));
     return Response.json({ message: '初始化成功', count: 0 });
   } catch (err) {
     return Response.json({ error: err.message }, { status: 500 });

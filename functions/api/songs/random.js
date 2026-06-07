@@ -1,6 +1,6 @@
 export async function onRequestGet(context) {
   try {
-    const raw  = await MY_KV.get('songs:all');
+    const raw  = await Yukari_Songs.get('songs:all');
     const songs = raw ? JSON.parse(raw) : [];
     const pool  = songs.filter(s => s.status !== 'banned');
 

@@ -6,7 +6,7 @@ export async function onRequestPost(context) {
       return Response.json({ error: 'Title and Artist are required' }, { status: 400 });
     }
 
-    const raw   = await MY_KV.get('songs:all');
+    const raw   = await Yukari_Songs.get('songs:all');
     const songs = raw ? JSON.parse(raw) : [];
 
     const maxId  = songs.length > 0 ? Math.max(...songs.map(s => s.id)) : 0;
@@ -20,7 +20,7 @@ export async function onRequestPost(context) {
     };
 
     songs.push(newSong);
-    await MY_KV.put('songs:all', JSON.stringify(songs));
+    await Yukari_Songs.put('songs:all', JSON.stringify(songs));
 
     return Response.json({ success: true, id: newId });
   } catch (err) {

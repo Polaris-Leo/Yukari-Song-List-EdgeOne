@@ -10,7 +10,7 @@
  *        )) FROM songs;
  *      将结果保存为 songs.json (数组格式)
  *
- *   2. 部署项目到 EdgeOne 并配置好 KV 绑定 (MY_KV)
+ *   2. 部署项目到 EdgeOne 并配置好 KV 绑定 (Yukari_Songs，命名空间 ID: ns-KfUC07C1bT9C)
  *
  *   3. 访问 POST /admin/api/import，请求体为 songs.json 的内容:
  *      curl -X POST https://your-site/admin/api/import \

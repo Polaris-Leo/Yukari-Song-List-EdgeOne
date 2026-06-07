@@ -6,7 +6,7 @@ export async function onRequestPost(context) {
       return Response.json({ error: 'Input must be an array of songs' }, { status: 400 });
     }
 
-    const raw      = await MY_KV.get('songs:all');
+    const raw      = await Yukari_Songs.get('songs:all');
     const existing = raw ? JSON.parse(raw) : [];
 
     const maxId    = existing.length > 0 ? Math.max(...existing.map(s => s.id)) : 0;
@@ -20,7 +20,7 @@ export async function onRequestPost(context) {
     }));
 
     const all = [...existing, ...toImport];
-    await MY_KV.put('songs:all', JSON.stringify(all));
+    await Yukari_Songs.put('songs:all', JSON.stringify(all));
 
     return Response.json({ success: true, count: toImport.length });
   } catch (err) {

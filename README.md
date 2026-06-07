@@ -72,7 +72,7 @@
 ## 部署到 EdgeOne Pages
 
 1. 在 [EdgeOne 控制台](https://console.cloud.tencent.com/edgeone) 创建 Pages 项目，关联本仓库。
-2. 创建 **KV 命名空间**，绑定名称设为 `MY_KV`。
+2. 创建 **KV 命名空间**（命名空间 ID: `ns-KfUC07C1bT9C`），绑定名称设为 `Yukari_Songs`。
 3. 在项目设置中配置环境变量：
 
    | 变量名 | 说明 |

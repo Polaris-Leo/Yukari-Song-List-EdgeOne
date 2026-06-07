@@ -1,4 +1,4 @@
-// MY_KV is the EdgeOne KV namespace binding configured in the EdgeOne console
+// Yukari_Songs is the EdgeOne KV namespace binding configured in the EdgeOne console
 // Data layout: songs:all → JSON array of {id, title, artist, language, status}
 
 export async function onRequestGet(context) {
@@ -9,7 +9,7 @@ export async function onRequestGet(context) {
   const language = url.searchParams.get('language')         || 'ALL';
 
   try {
-    const raw = await MY_KV.get('songs:all');
+    const raw = await Yukari_Songs.get('songs:all');
     let songs = raw ? JSON.parse(raw) : [];
 
     if (search) {

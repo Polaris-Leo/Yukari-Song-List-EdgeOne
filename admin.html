@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <link rel="icon" href="https://cdn.imgos.cn/vip/2026/03/23/69c11aa551328.png">
+    <title>优花璃点歌台 - 管理后台</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdn.imgos.cn" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdn.imgos.cn">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" as="script" crossorigin>
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" as="script" crossorigin>
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/@babel/standalone@7.26.5/babel.min.js" as="script">
+    <link rel="preload" href="https://cdn.imgos.cn/vip/2026/03/23/69c0e63270098.png" as="image">
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script>
+        // 屏蔽 Babel 浏览器端转换的生产环境警告
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            if (args[0] && typeof args[0] === 'string' && args[0].includes('in-browser Babel transformer')) {
+                return;
+            }
+            originalWarn.apply(console, args);
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.26.5/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif; 
+            background: #f8fafc url('https://cdn.imgos.cn/vip/2026/03/23/69c0e63270098.png') no-repeat center center fixed; 
+            background-size: cover;
+            color: #1e293b; 
+            line-height: 1.6; 
+        }
+        #root { min-height: 100vh; padding: 2rem; max-width: 1000px; margin: 0 auto; }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 { margin-bottom: 1.5rem; color: #1e293b; }
+        h2 { margin-bottom: 1rem; color: #334155; font-size: 1.25rem; }
+
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #475569; }
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+            font-size: 1rem; /* >= 16px 防止 iOS Safari 自动缩放 */
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary { background: #4f46e5; color: white; }
+        .btn-primary:hover { background: #4338ca; }
+        
+        .btn-danger { background: #ef4444; color: white; padding: 0.5rem 1rem; font-size: 0.875rem; }
+        .btn-danger:hover { background: #dc2626; }
+
+        .song-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .song-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            animation: fadeIn 0.3s ease-out backwards;
+        }
+
+        .song-item:hover {
+            border-color: #4f46e5;
+            transform: translateX(4px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .toast {
+            position: fixed;
+            top: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            background: #4f46e5;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translate(-50%, -1rem); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Custom Select Styles */
+        .custom-select-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        .custom-select-trigger {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            color: #1e293b;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .custom-select-trigger:hover {
+            border-color: #4f46e5;
+        }
+
+        .custom-select-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            z-index: 100;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            animation: slideDownFade 0.2s ease-out;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* Custom Scrollbar for Select Options */
+        .custom-select-options::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-select-options::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .custom-select-options::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .custom-select-options::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .custom-select-option {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: #1e293b;
+        }
+
+        .custom-select-option:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .custom-select-option.selected {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .lang-badge {
+            font-size: 0.75rem;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            padding: 0.25rem 0.625rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.5);
+            display: inline-block;
+        }
+
+        .arrow {
+            transition: transform 0.2s;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .arrow.open {
+            transform: rotate(180deg);
+        }
+
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== 移动端适配 ===== */
+        .btn { touch-action: manipulation; }
+
+        /* 歌曲列表操作区，小屏换行显示 */
+        .song-item-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        @media (max-width: 639px) {
+            /* 减小页面内边距，让内容区域更宽 */
+            #root { padding: 1rem; }
+            /* 歌曲条目：主信息和操作按钮上下堆叠，避免挡屏 */
+            .song-item { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+            .song-item-actions { flex-wrap: wrap; gap: 0.5rem; }
+            /* 弹窗内边距缩小 */
+            .modal-content { padding: 1.5rem 1.25rem; }
+            /* 标题行自动换行 */
+            h1 { font-size: 1.25rem; }
+        }
+
+        @media (hover: none) {
+            .song-item:hover { transform: none; }
+            .btn-primary:hover { background: #4f46e5; }
+            .btn-danger:hover { background: #ef4444; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const CustomSelect = ({ value, onChange, options, placeholder, style }) => {
+            const [isOpen, setIsOpen] = useState(false);
+            const containerRef = React.useRef(null);
+
+            useEffect(() => {
+                const handleClickOutside = (event) => {
+                    if (containerRef.current && !containerRef.current.contains(event.target)) {
+                        setIsOpen(false);
+                    }
+                };
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => document.removeEventListener('mousedown', handleClickOutside);
+            }, []);
+
+            const selectedOption = options.find(opt => opt.value === value);
+
+            return (
+                <div className="custom-select-container" ref={containerRef} style={style}>
+                    <div className="custom-select-trigger" onClick={() => setIsOpen(!isOpen)}>
+                        <span>{selectedOption ? selectedOption.label : placeholder}</span>
+                        <span className={`arrow ${isOpen ? 'open' : ''}`}>▼</span>
+                    </div>
+                    {isOpen && (
+                        <div className="custom-select-options">
+                            {options.map(option => (
+                                <div 
+                                    key={option.value} 
+                                    className={`custom-select-option ${value === option.value ? 'selected' : ''}`}
+                                    onClick={() => {
+                                        onChange(option.value);
+                                        setIsOpen(false);
+                                    }}
+                                >
+                                    {option.label}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const LANGUAGES = { '中文': '中文', '日语': '日语', '英语': '英语', '其他': '其他' };
+
+        function AdminApp() {
+            const [songs, setSongs] = useState([]);
+            const [newSong, setNewSong] = useState({ title: '', artist: '', language: '中文', status: 'normal' });
+            const [editingId, setEditingId] = useState(null);
+            const [isModalOpen, setIsModalOpen] = useState(false);
+            const [toast, setToast] = useState(null);
+            const [loading, setLoading] = useState(false);
+            
+            // Search & Pagination State
+            const [searchTerm, setSearchTerm] = useState('');
+            const [activeLang, setActiveLang] = useState('ALL');
+            const [currentPage, setCurrentPage] = useState(1);
+            const [totalPages, setTotalPages] = useState(1);
+            const [totalSongs, setTotalSongs] = useState(0);
+
+            const showToast = (msg) => {
+                setToast(msg);
+                setTimeout(() => setToast(null), 3000);
+            };
+
+            // 跳过首次渲染的 searchTerm effect，避免与 currentPage/activeLang effect 重复发起请求
+            const searchMounted = React.useRef(false);
+
+            useEffect(() => {
+                if (!searchMounted.current) {
+                    searchMounted.current = true;
+                    return;
+                }
+                const timer = setTimeout(() => {
+                    setCurrentPage(1);
+                    loadSongs(1);
+                }, 400);
+                return () => clearTimeout(timer);
+            }, [searchTerm]);
+
+            useEffect(() => {
+                loadSongs(currentPage);
+            }, [currentPage, activeLang]);
+
+            const loadSongs = async (page = currentPage) => {
+                try {
+                    const params = {
+                        page: page,
+                        limit: 20,
+                        language: activeLang,
+                        search: searchTerm
+                    };
+                    const res = await axios.get('/api/songs', { params });
+                    setSongs(res.data.data || []);
+                    setTotalPages(res.data.totalPages || 1);
+                    setTotalSongs(res.data.total || 0);
+                } catch (err) {
+                    console.error('加载失败:', err);
+                    showToast('加载失败');
+                }
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                try {
+                    if (editingId) {
+                        await axios.put(`/admin/api/songs/${editingId}`, newSong);
+                        showToast('修改成功');
+                    } else {
+                        await axios.post('/admin/api/songs', newSong);
+                        showToast('添加成功');
+                    }
+                    closeModal();
+                    loadSongs(currentPage);
+                } catch (err) {
+                    showToast(editingId ? '修改失败' : '添加失败');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleEdit = (song) => {
+                setNewSong({ 
+                    title: song.title, 
+                    artist: song.artist, 
+                    language: song.language, 
+                    status: song.status 
+                });
+                setEditingId(song.id);
+                setIsModalOpen(true);
+            };
+
+            const openAddModal = () => {
+                setNewSong({ title: '', artist: '', language: '中文', status: 'normal' });
+                setEditingId(null);
+                setIsModalOpen(true);
+            };
+
+            const closeModal = () => {
+                setIsModalOpen(false);
+                setNewSong({ title: '', artist: '', language: '中文', status: 'normal' });
+                setEditingId(null);
+            };
+
+            const handleDelete = async (id) => {
+                if (!confirm('确定要删除这首歌吗？')) return;
+                try {
+                    await axios.delete(`/admin/api/songs/${id}`);
+                    showToast('删除成功');
+                    loadSongs(currentPage);
+                } catch (err) {
+                    showToast('删除失败');
+                }
+            };
+
+            const handleCsvUpload = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                if (!confirm('确定要导入该 CSV 文件吗？这会添加到现有数据库中。')) {
+                    e.target.value = ''; // Reset input
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const text = event.target.result;
+                        const rows = text.split(/\r?\n/);
+                        const csvSongs = [];
+                        
+                        // Find header row index
+                        let startIndex = 0;
+                        for(let i = 0; i < rows.length; i++) {
+                            if(rows[i].includes('中文歌曲') && rows[i].includes('日语歌曲')) {
+                                startIndex = i + 1;
+                                break;
+                            }
+                        }
+
+                        // Helper to parse CSV line properly handling quotes
+                        const parseCsvLine = (line) => {
+                            const result = [];
+                            let current = '';
+                            let inQuote = false;
+                            for(let i = 0; i < line.length; i++) {
+                                const char = line[i];
+                                if(char === '"') {
+                                    inQuote = !inQuote;
+                                } else if(char === ',' && !inQuote) {
+                                    result.push(current.trim());
+                                    current = '';
+                                } else {
+                                    current += char;
+                                }
+                            }
+                            result.push(current.trim());
+                            return result;
+                        };
+
+                        for(let i = startIndex; i < rows.length; i++) {
+                            const line = rows[i].trim();
+                            if(!line) continue;
+                            
+                            const cols = parseCsvLine(line);
+                            
+                            const addSong = (title, lang) => {
+                                if(title && !title.startsWith('表格') && !title.startsWith('注：') && 
+                                   title !== '韩语歌曲' && title !== '塔语歌曲') {
+                                    // Remove quotes if present
+                                    let cleanTitle = title.replace(/^"|"$/g, '').trim();
+                                    if(cleanTitle) {
+                                        csvSongs.push({
+                                            title: cleanTitle,
+                                            artist: '优花璃',
+                                            language: lang,
+                                            status: 'normal'
+                                        });
+                                    }
+                                }
+                            };
+
+                            if(cols.length > 0) addSong(cols[0], '中文');
+                            if(cols.length > 2) addSong(cols[2], '日语');
+                            if(cols.length > 4) addSong(cols[4], '英语');
+                            if(cols.length > 6) addSong(cols[6], '其他');
+                        }
+
+                        if(csvSongs.length === 0) {
+                            showToast('未找到有效歌曲数据');
+                            return;
+                        }
+
+                        // Filter duplicates
+                        // Note: Since we are paginating, we can't easily check duplicates against all songs on client side.
+                        // Ideally backend should handle this, but for now we'll just import.
+                        // Or we could fetch all titles first, but that might be heavy.
+                        // Let's just proceed with import and let user manage duplicates if any.
+                        
+                        showToast(`解析出 ${csvSongs.length} 首歌曲，正在导入...`);
+                        await axios.post('/admin/api/import', csvSongs);
+                        showToast(`成功导入 ${csvSongs.length} 首新歌`);
+                        loadSongs(currentPage);
+                    } catch (err) {
+                        console.error(err);
+                        showToast('导入失败: ' + err.message);
+                    } finally {
+                        e.target.value = ''; // Reset input
+                    }
+                };
+                reader.readAsText(file, 'UTF-8'); 
+            };
+
+            const handleLogout = async () => {
+                try {
+                    await axios.post('/api/auth/logout');
+                    window.location.href = '/login.html';
+                } catch (err) {
+                    console.error('Logout failed', err);
+                }
+            };
+
+            return (
+                <div>
+                    {toast && <div className="toast">{toast}</div>}
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
+                        <h1 style={{margin: 0, color: 'rgba(255, 255, 255, 0.9)', textShadow: '0 2px 8px rgba(0,0,0,0.3)'}}>歌曲管理后台</h1>
+                        <button onClick={handleLogout} className="btn" style={{background: '#ef4444', color: 'white', width: 'auto'}}>
+                            退出登录
+                        </button>
+                    </div>
+
+                    <div className="card">
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem'}}>
+                            <h2>歌曲列表 ({totalSongs})</h2>
+                            <div style={{display: 'flex', gap: '1rem'}}>
+                                <button onClick={openAddModal} className="btn btn-primary">
+                                    + 添加新歌
+                                </button>
+                                <div style={{position: 'relative'}}>
+                                    <input 
+                                        type="file" 
+                                        accept=".csv"
+                                        onChange={handleCsvUpload}
+                                        style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '100%',
+                                            height: '100%',
+                                            opacity: 0,
+                                            cursor: 'pointer'
+                                        }}
+                                    />
+                                    <button className="btn" style={{background: 'white', color: '#1e293b', border: '1px solid #cbd5e1'}}>
+                                        导入 CSV 歌单
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Search & Filter Bar */}
+                        <div style={{display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap'}}>
+                            <input 
+                                type="text" 
+                                placeholder="搜索歌曲 / 歌手..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                style={{flex: 1, minWidth: '200px', marginBottom: 0}}
+                            />
+                            <div style={{width: '150px'}}>
+                                <CustomSelect 
+                                    value={activeLang} 
+                                    onChange={(val) => setActiveLang(val)}
+                                    options={[
+                                        { value: 'ALL', label: '全部语言' },
+                                        ...Object.entries(LANGUAGES).map(([key, label]) => ({ value: key, label }))
+                                    ]}
+                                    placeholder="全部语言"
+                                    style={{marginBottom: 0}}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="song-list">
+                            {songs.map((song, index) => (
+                                <div key={song.id} className="song-item">
+                                    <div>
+                                        <div style={{fontWeight: 'bold'}}>{song.title}</div>
+                                        <div style={{fontSize: '0.875rem', color: '#64748b'}}>{song.artist}</div>
+                                    </div>
+                                    <div className="song-item-actions">
+                                        <span className="lang-badge">
+                                            {LANGUAGES[song.language] || song.language}
+                                        </span>
+                                        <button onClick={() => handleEdit(song)} className="btn" style={{background: '#0ea5e9', color: 'white', padding: '0.5rem 1rem', fontSize: '0.875rem'}}>
+                                            编辑
+                                        </button>
+                                        <button onClick={() => handleDelete(song.id)} className="btn btn-danger">
+                                            删除
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Pagination Controls */}
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+                            <button 
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="btn"
+                                style={{ width: 'auto', background: currentPage === 1 ? '#cbd5e1' : 'white', border: '1px solid #cbd5e1', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                            >
+                                上一页
+                            </button>
+                            <span style={{ display: 'flex', alignItems: 'center', fontWeight: 'bold', color: '#475569' }}>
+                                {currentPage} / {totalPages}
+                            </span>
+                            <button 
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="btn"
+                                style={{ width: 'auto', background: currentPage === totalPages ? '#cbd5e1' : 'white', border: '1px solid #cbd5e1', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                            >
+                                下一页
+                            </button>
+                        </div>
+                    </div>
+
+                    {isModalOpen && (
+                        <div className="modal-overlay" onClick={(e) => { if(e.target === e.currentTarget) closeModal(); }}>
+                            <div className="modal-content">
+                                <h2 style={{marginBottom: '1.5rem'}}>{editingId ? '编辑歌曲' : '添加新歌'}</h2>
+                                <form onSubmit={handleSubmit}>
+                                    <div className="form-group">
+                                        <label>歌名</label>
+                                        <input 
+                                            placeholder="请输入歌名" 
+                                            value={newSong.title}
+                                            onChange={e => setNewSong({...newSong, title: e.target.value})}
+                                            required
+                                            autoFocus
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>歌手</label>
+                                        <input 
+                                            placeholder="请输入歌手" 
+                                            value={newSong.artist}
+                                            onChange={e => setNewSong({...newSong, artist: e.target.value})}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>语言</label>
+                                        <CustomSelect 
+                                            value={newSong.language}
+                                            onChange={val => setNewSong({...newSong, language: val})}
+                                            options={[
+                                                { value: '中文', label: '中文' },
+                                                { value: '日语', label: '日语' },
+                                                { value: '英语', label: '英语' },
+                                                { value: '其他', label: '其他' }
+                                            ]}
+                                            placeholder="请选择语言"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>点歌状态</label>
+                                        <CustomSelect 
+                                            value={newSong.status}
+                                            onChange={val => setNewSong({...newSong, status: val})}
+                                            options={[
+                                                { value: 'normal', label: '可点歌' },
+                                                { value: 'need_sc', label: '需SC' },
+                                                { value: 'banned', label: '禁止点歌' }
+                                            ]}
+                                            placeholder="请选择状态"
+                                        />
+                                    </div>
+                                    <div style={{display: 'flex', gap: '1rem', marginTop: '2rem'}}>
+                                        <button type="submit" className="btn btn-primary" style={{flex: 1}} disabled={loading}>
+                                            {loading ? '提交中...' : (editingId ? '保存修改' : '添加歌曲')}
+                                        </button>
+                                        <button type="button" onClick={closeModal} className="btn" style={{background: '#334155', color: 'white', flex: 1}}>
+                                            取消
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<AdminApp />);
+    </script>
+</body>
+</html>

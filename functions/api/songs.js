@@ -3,12 +3,26 @@
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
+// Seeded Fisher-Yates shuffle using a simple LCG RNG
+function seededShuffle(arr, seed) {
+  let s = seed >>> 0;
+  const rand = () => {
+    s = Math.imul(s, 1664525) + 1013904223 >>> 0;
+    return s / 0x100000000;
+  };
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
 export async function onRequestGet(context) {
-  const url = new URL(context.request.url);
-  const page    = parseInt(url.searchParams.get('page')     || '1');
-  const limit   = parseInt(url.searchParams.get('limit')    || '24');
-  const search  = (url.searchParams.get('search')           || '').toLowerCase().trim();
-  const language = url.searchParams.get('language')         || 'ALL';
+  const url      = new URL(context.request.url);
+  const page     = parseInt(url.searchParams.get('page')     || '1');
+  const limit    = parseInt(url.searchParams.get('limit')    || '24');
+  const search   = (url.searchParams.get('search')           || '').toLowerCase().trim();
+  const language = url.searchParams.get('language')          || 'ALL';
+  const seed     = parseInt(url.searchParams.get('seed')     || '0');
 
   try {
     const raw = await Yukari_Songs.get('songs_all');
@@ -25,7 +39,11 @@ export async function onRequestGet(context) {
       songs = songs.filter(s => s.language === language);
     }
 
-    songs.sort((a, b) => b.id - a.id);
+    if (seed) {
+      seededShuffle(songs, seed);
+    } else {
+      songs.sort((a, b) => b.id - a.id);
+    }
 
     const total      = songs.length;
     const offset     = (page - 1) * limit;

@@ -646,6 +646,16 @@
             const [totalPages, setTotalPages] = useState(1);
             const [isLoading, setIsLoading] = useState(false);
 
+            // 每次会话生成新 seed，同一 tab 内翻页顺序一致，刷新/重新打开则重新随机
+            const [sessionSeed] = useState(() => {
+                const key = 'yukari_song_seed';
+                const existing = sessionStorage.getItem(key);
+                if (existing) return parseInt(existing);
+                const seed = Math.floor(Math.random() * 0xffffff) + 1;
+                sessionStorage.setItem(key, String(seed));
+                return seed;
+            });
+
             // 用于跳过首次渲染时 searchTerm effect 的触发，避免与 currentPage/activeLang effect 重复发起请求
             const searchMounted = React.useRef(false);
 
@@ -681,7 +691,8 @@
                         page: page,
                         limit: 15,
                         language: activeLang,
-                        search: searchTerm
+                        search: searchTerm,
+                        seed: searchTerm ? 0 : sessionSeed
                     };
                     const res = await axios.get('/api/songs', { params });
                     setSongs(res.data.data || []);

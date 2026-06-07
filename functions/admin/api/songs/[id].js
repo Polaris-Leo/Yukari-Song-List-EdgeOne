@@ -3,7 +3,7 @@ export async function onRequestPut(context) {
     const id                                  = parseInt(context.params.id);
     const { title, artist, language, status } = await context.request.json();
 
-    const raw   = await Yukari_Songs.get('songs:all');
+    const raw   = await Yukari_Songs.get('songs_all');
     const songs = raw ? JSON.parse(raw) : [];
 
     const idx = songs.findIndex(s => s.id === id);
@@ -12,7 +12,7 @@ export async function onRequestPut(context) {
     }
 
     songs[idx] = { ...songs[idx], title, artist, language, status };
-    await Yukari_Songs.put('songs:all', JSON.stringify(songs));
+    await Yukari_Songs.put('songs_all', JSON.stringify(songs));
 
     return Response.json({ success: true });
   } catch (err) {
@@ -24,7 +24,7 @@ export async function onRequestDelete(context) {
   try {
     const id = parseInt(context.params.id);
 
-    const raw      = await Yukari_Songs.get('songs:all');
+    const raw      = await Yukari_Songs.get('songs_all');
     const songs    = raw ? JSON.parse(raw) : [];
     const filtered = songs.filter(s => s.id !== id);
 
@@ -32,7 +32,7 @@ export async function onRequestDelete(context) {
       return Response.json({ error: 'Song not found' }, { status: 404 });
     }
 
-    await Yukari_Songs.put('songs:all', JSON.stringify(filtered));
+    await Yukari_Songs.put('songs_all', JSON.stringify(filtered));
 
     return Response.json({ success: true });
   } catch (err) {

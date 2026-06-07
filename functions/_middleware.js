@@ -16,7 +16,10 @@ export async function onRequest(context) {
         headers: { 'Content-Type': 'application/json' }
       });
     }
-    return Response.redirect(`${url.origin}/login.html`, 302);
+    return new Response(null, {
+      status: 302,
+      headers: { 'Location': `${url.origin}/login.html` }
+    });
   }
 
   return context.next();

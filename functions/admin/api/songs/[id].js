@@ -1,3 +1,5 @@
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
 export async function onRequestPut(context) {
   try {
     const id                                  = parseInt(context.params.id);
@@ -8,15 +10,15 @@ export async function onRequestPut(context) {
 
     const idx = songs.findIndex(s => s.id === id);
     if (idx === -1) {
-      return Response.json({ error: 'Song not found' }, { status: 404 });
+      return new Response(JSON.stringify({ error: 'Song not found' }), { status: 404, headers: JSON_HEADERS });
     }
 
     songs[idx] = { ...songs[idx], title, artist, language, status };
     await Yukari_Songs.put('songs_all', JSON.stringify(songs));
 
-    return Response.json({ success: true });
+    return new Response(JSON.stringify({ success: true }), { headers: JSON_HEADERS });
   } catch (err) {
-    return Response.json({ error: err.message }, { status: 500 });
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: JSON_HEADERS });
   }
 }
 
@@ -29,13 +31,13 @@ export async function onRequestDelete(context) {
     const filtered = songs.filter(s => s.id !== id);
 
     if (filtered.length === songs.length) {
-      return Response.json({ error: 'Song not found' }, { status: 404 });
+      return new Response(JSON.stringify({ error: 'Song not found' }), { status: 404, headers: JSON_HEADERS });
     }
 
     await Yukari_Songs.put('songs_all', JSON.stringify(filtered));
 
-    return Response.json({ success: true });
+    return new Response(JSON.stringify({ success: true }), { headers: JSON_HEADERS });
   } catch (err) {
-    return Response.json({ error: err.message }, { status: 500 });
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: JSON_HEADERS });
   }
 }

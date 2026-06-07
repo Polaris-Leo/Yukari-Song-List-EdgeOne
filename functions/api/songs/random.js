@@ -1,3 +1,5 @@
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
 export async function onRequestGet(context) {
   try {
     const raw  = await Yukari_Songs.get('songs_all');
@@ -5,12 +7,12 @@ export async function onRequestGet(context) {
     const pool  = songs.filter(s => s.status !== 'banned');
 
     if (pool.length === 0) {
-      return Response.json(null);
+      return new Response('null', { headers: JSON_HEADERS });
     }
 
     const song = pool[Math.floor(Math.random() * pool.length)];
-    return Response.json(song);
+    return new Response(JSON.stringify(song), { headers: JSON_HEADERS });
   } catch (err) {
-    return Response.json({ error: err.message }, { status: 500 });
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: JSON_HEADERS });
   }
 }

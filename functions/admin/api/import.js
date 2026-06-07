@@ -1,9 +1,11 @@
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
 export async function onRequestPost(context) {
   try {
     const incoming = await context.request.json();
 
     if (!Array.isArray(incoming)) {
-      return Response.json({ error: 'Input must be an array of songs' }, { status: 400 });
+      return new Response(JSON.stringify({ error: 'Input must be an array of songs' }), { status: 400, headers: JSON_HEADERS });
     }
 
     const raw      = await Yukari_Songs.get('songs_all');
@@ -22,8 +24,8 @@ export async function onRequestPost(context) {
     const all = [...existing, ...toImport];
     await Yukari_Songs.put('songs_all', JSON.stringify(all));
 
-    return Response.json({ success: true, count: toImport.length });
+    return new Response(JSON.stringify({ success: true, count: toImport.length }), { headers: JSON_HEADERS });
   } catch (err) {
-    return Response.json({ error: err.message }, { status: 500 });
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: JSON_HEADERS });
   }
 }

@@ -1,6 +1,8 @@
 // Yukari_Songs is the EdgeOne KV namespace binding configured in the EdgeOne console
 // Data layout: songs_all → JSON array of {id, title, artist, language, status}
 
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
 export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const page    = parseInt(url.searchParams.get('page')     || '1');
@@ -30,8 +32,8 @@ export async function onRequestGet(context) {
     const data       = songs.slice(offset, offset + limit);
     const totalPages = Math.ceil(total / limit) || 1;
 
-    return Response.json({ data, total, page, limit, totalPages });
+    return new Response(JSON.stringify({ data, total, page, limit, totalPages }), { headers: JSON_HEADERS });
   } catch (err) {
-    return Response.json({ error: err.message }, { status: 500 });
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: JSON_HEADERS });
   }
 }

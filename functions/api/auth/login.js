@@ -1,3 +1,5 @@
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
 export async function onRequestPost(context) {
   try {
     const { username, password } = await context.request.json();
@@ -15,8 +17,8 @@ export async function onRequestPost(context) {
       });
     }
 
-    return Response.json({ error: 'Invalid credentials' }, { status: 401 });
+    return new Response(JSON.stringify({ error: 'Invalid credentials' }), { status: 401, headers: JSON_HEADERS });
   } catch (err) {
-    return Response.json({ error: err.message }, { status: 500 });
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: JSON_HEADERS });
   }
 }

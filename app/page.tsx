@@ -130,7 +130,7 @@ export default function HomePage() {
     marginTop: 'auto', touchAction: 'manipulation',
   }
   const btnPage: React.CSSProperties = {
-    ...btnCopy, width: 'auto', padding: '0.5rem 1.25rem',
+    ...btnCopy, width: 'auto', padding: '0.5rem 1.25rem', marginTop: 0,
   }
 
   return (

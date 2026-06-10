@@ -144,11 +144,6 @@ function SizeDropdown({ value, options, onChange }: {
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
               {opt} 条/页
-              {opt === value && (
-                <svg style={{ marginLeft: 'auto' }} width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 7l4 4 6-7" stroke="#4f46e5" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              )}
             </div>
           ))}
         </div>

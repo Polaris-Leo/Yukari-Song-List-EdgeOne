@@ -99,7 +99,7 @@ export default function HomePage() {
     setLoading(true)
     try {
       const params = new URLSearchParams({
-        page: String(page), limit: '20', language: lang, search,
+        page: String(page), limit: '15', language: lang, search,
         ...(search ? {} : { seed: String(seed) }),
       })
       const res  = await fetch(`/api/songs?${params}`)

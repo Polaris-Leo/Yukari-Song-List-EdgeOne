@@ -300,12 +300,12 @@ export default function HomePage() {
         </div>
 
         {/* ── Song grid ── */}
-        {loading ? (
+        {loading && songs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '4rem', color: 'rgba(255,255,255,0.7)' }}>加载中...</div>
-        ) : songs.length === 0 ? (
+        ) : !loading && songs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '4rem', color: 'rgba(255,255,255,0.7)' }}>暂无歌曲</div>
         ) : (
-          <div className="song-grid">
+          <div className="song-grid" style={{ opacity: loading ? 0.5 : 1, transition: 'opacity 0.2s' }}>
             {songs.map((song, idx) => {
               const cfg = STATUS_CONFIG[song.status] ?? STATUS_CONFIG.normal
               return (

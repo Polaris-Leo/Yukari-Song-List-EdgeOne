@@ -4,8 +4,12 @@ export async function onRequestPost(context) {
   try {
     const { username, password } = await context.request.json();
 
-    const ADMIN_USER     = context.env.ADMIN_USER     || 'Yukari';
-    const ADMIN_PASSWORD = context.env.ADMIN_PASSWORD || 'MoWang0719';
+    const ADMIN_USER     = context.env.ADMIN_USER;
+    const ADMIN_PASSWORD = context.env.ADMIN_PASSWORD;
+
+    if (!ADMIN_USER || !ADMIN_PASSWORD) {
+      return new Response(JSON.stringify({ error: 'Server not configured' }), { status: 500, headers: JSON_HEADERS });
+    }
 
     if (username === ADMIN_USER && password === ADMIN_PASSWORD) {
       const sessionValue = btoa(`${username}:${Date.now()}:yukari-secret`);

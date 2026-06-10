@@ -1,6 +1,27 @@
 {
   "name": "yukari-song-list-edgeone",
-  "version": "1.0.0",
-  "description": "优花璃点歌台 — EdgeOne Pages 版本",
-  "private": true
+  "version": "2.0.0",
+  "description": "优花璃点歌台 — EdgeOne Pages + Next.js",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^15.3.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.6.0",
+    "lucide-react": "^0.475.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
 }

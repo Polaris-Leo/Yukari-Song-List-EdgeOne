@@ -39,6 +39,46 @@ function parseCsvLine(line: string): string[] {
   res.push(cur.trim()); return res
 }
 
+/* ── Pagination helpers (same logic as main page) ── */
+function getPageItems(current: number, total: number): (number | 'le' | 're')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const delta = 2
+  const lo = Math.max(2, current - delta)
+  const hi = Math.min(total - 1, current + delta)
+  const mid: number[] = []
+  for (let i = lo; i <= hi; i++) mid.push(i)
+  const result: (number | 'le' | 're')[] = [1]
+  if (lo > 2)         result.push('le')
+  result.push(...mid)
+  if (hi < total - 1) result.push('re')
+  result.push(total)
+  return result
+}
+
+function PgBtn({ active, disabled, onClick, children, ...rest }:
+  React.ButtonHTMLAttributes<HTMLButtonElement> & { active: boolean }
+) {
+  return (
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      {...rest}
+      style={{
+        minWidth: 32, height: 32, padding: '0 0.375rem',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        borderRadius: '0.5rem', fontSize: '0.875rem', fontWeight: active ? 600 : 400,
+        border: active ? '1px solid #4f46e5' : '1px solid #e2e8f0',
+        background: active ? '#4f46e5' : 'white',
+        color: active ? 'white' : disabled ? '#c0ccd8' : '#374151',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        transition: 'all 0.15s', touchAction: 'manipulation',
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
 /* ── Shared style tokens ── */
 const card: React.CSSProperties = {
   background: 'rgba(255,255,255,0.85)', borderRadius: '1rem',
@@ -53,9 +93,6 @@ const btnPrimary: React.CSSProperties = {
 const btnDanger: React.CSSProperties = {
   ...btnPrimary, background: '#ef4444',
 }
-const btnEdit: React.CSSProperties = {
-  ...btnPrimary, background: '#0ea5e9', padding: '0.35rem 0.625rem',
-}
 const btnGhost: React.CSSProperties = {
   ...btnPrimary, background: 'transparent', color: '#64748b',
   border: '1px solid #cbd5e1',
@@ -64,6 +101,13 @@ const inputStyle: React.CSSProperties = {
   padding: '0.45rem 0.75rem', background: 'rgba(255,255,255,0.95)',
   border: '1px solid #cbd5e1', borderRadius: '0.5rem',
   color: '#1e293b', fontSize: '0.875rem', outline: 'none', transition: 'border-color 0.15s',
+}
+/* unified size for edit/delete row-action buttons */
+const btnRowAction: React.CSSProperties = {
+  padding: '0.3rem 0.5rem', borderRadius: '0.375rem', border: 'none',
+  fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+  transition: 'all 0.15s', flexShrink: 0, lineHeight: 1.2,
+  whiteSpace: 'nowrap',
 }
 
 export default function AdminPage() {
@@ -202,19 +246,12 @@ export default function AdminPage() {
     router.push('/login')
   }
 
-  /* pill style for lang filter */
   const pillStyle = (active: boolean): React.CSSProperties => ({
     padding: '0.3rem 0.7rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 600,
     cursor: 'pointer', border: active ? '1px solid #4f46e5' : '1px solid #cbd5e1',
     background: active ? '#4f46e5' : 'white', color: active ? 'white' : '#64748b',
     transition: 'all 0.15s', whiteSpace: 'nowrap' as const,
   })
-
-  /* custom select style for page size */
-  const selectStyle: React.CSSProperties = {
-    padding: '0.35rem 0.5rem', borderRadius: '0.375rem', border: '1px solid #cbd5e1',
-    background: 'white', color: '#475569', fontSize: '0.8rem', outline: 'none', cursor: 'pointer',
-  }
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1.25rem 1.5rem 6rem' }}>
@@ -261,12 +298,8 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Right: page size + actions */}
+          {/* Right: actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-            <select style={selectStyle} value={pageSize}
-              onChange={e => { setPageSize(Number(e.target.value)); setCurrentPage(1) }}>
-              {PAGE_SIZES.map(s => <option key={s} value={s}>{s}条/页</option>)}
-            </select>
             {selectedIds.size > 0 && (
               <button style={btnDanger} onClick={handleBatchDelete}>批量删除({selectedIds.size})</button>
             )}
@@ -280,7 +313,7 @@ export default function AdminPage() {
 
         {/* Table header */}
         <div style={{
-          display: 'grid', gridTemplateColumns: '36px minmax(0,2fr) minmax(0,1.5fr) 68px 68px 104px',
+          display: 'grid', gridTemplateColumns: '36px minmax(0,2fr) minmax(0,1.5fr) 64px 64px 88px',
           gap: '0.75rem', padding: '0.5rem 1.25rem',
           background: '#f8fafc', borderBottom: '1px solid #e2e8f0',
           fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em',
@@ -298,7 +331,7 @@ export default function AdminPage() {
               const st = STATUS_STYLE[song.status]
               return (
                 <div key={song.id} style={{
-                  display: 'grid', gridTemplateColumns: '36px minmax(0,2fr) minmax(0,1.5fr) 68px 68px 104px',
+                  display: 'grid', gridTemplateColumns: '36px minmax(0,2fr) minmax(0,1.5fr) 64px 64px 88px',
                   gap: '0.75rem', padding: '0.5rem 1.25rem', borderBottom: '1px solid #f1f5f9',
                   alignItems: 'center', minHeight: '48px',
                   background: selectedIds.has(song.id) ? 'rgba(79,70,229,0.07)' : 'transparent',
@@ -312,9 +345,9 @@ export default function AdminPage() {
                   <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '0.375rem', border: `1px solid ${st.border}`, color: st.color, background: st.bg, justifySelf: 'start' }}>
                     {STATUS_LABEL[song.status]}
                   </span>
-                  <div style={{ display: 'flex', gap: '0.375rem' }}>
-                    <button style={btnEdit} onClick={() => openEdit(song)}>编辑</button>
-                    <button style={btnDanger} onClick={() => handleDelete(song.id)}>删除</button>
+                  <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'nowrap', alignItems: 'center' }}>
+                    <button style={{ ...btnRowAction, background: '#0ea5e9', color: 'white' }} onClick={() => openEdit(song)}>编辑</button>
+                    <button style={{ ...btnRowAction, background: '#ef4444', color: 'white' }} onClick={() => handleDelete(song.id)}>删除</button>
                   </div>
                 </div>
               )
@@ -323,14 +356,64 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '1.25rem' }}>
-          <button disabled={currentPage <= 1} onClick={() => setCurrentPage(p => p - 1)}
-            style={{ ...btnGhost, opacity: currentPage <= 1 ? 0.5 : 1, cursor: currentPage <= 1 ? 'not-allowed' : 'pointer' }}>‹</button>
-          <span style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, padding: '0 0.5rem' }}>{currentPage} / {totalPages}</span>
-          <button disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => p + 1)}
-            style={{ ...btnGhost, opacity: currentPage >= totalPages ? 0.5 : 1, cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer' }}>›</button>
+      {/* Pagination bar — always shown when there are results */}
+      {total > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.25rem' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+            padding: '0.5rem 0.875rem',
+            background: 'rgba(255,255,255,0.82)',
+            border: '1px solid rgba(255,255,255,0.6)',
+            borderRadius: '0.875rem',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+            flexWrap: 'wrap',
+          }}>
+            {/* Page navigation — only when multiple pages */}
+            {totalPages > 1 && (
+              <>
+                <PgBtn active={false} disabled={currentPage <= 1} onClick={() => setCurrentPage(p => p - 1)} aria-label="上一页">
+                  <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M6 1L1 6l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </PgBtn>
+                {getPageItems(currentPage, totalPages).map((item, i) =>
+                  item === 'le' || item === 're' ? (
+                    <span key={item + i} style={{ width: 32, textAlign: 'center', color: '#94a3b8', fontSize: '0.875rem', userSelect: 'none' }}>···</span>
+                  ) : (
+                    <PgBtn key={item} active={item === currentPage} onClick={() => setCurrentPage(item as number)}>
+                      {item}
+                    </PgBtn>
+                  )
+                )}
+                <PgBtn active={false} disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => p + 1)} aria-label="下一页">
+                  <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </PgBtn>
+
+                {/* Divider */}
+                <span style={{ width: 1, height: 16, background: '#e2e8f0', margin: '0 0.125rem', flexShrink: 0 }} />
+              </>
+            )}
+
+            {/* Page size selector (Semi Design showSizeChanger style) */}
+            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+              <select
+                value={pageSize}
+                onChange={e => { setPageSize(Number(e.target.value)); setCurrentPage(1) }}
+                style={{
+                  appearance: 'none', WebkitAppearance: 'none',
+                  height: 32, padding: '0 26px 0 10px',
+                  border: '1px solid #e2e8f0', borderRadius: '6px',
+                  background: 'white', color: '#374151',
+                  fontSize: '0.8125rem', cursor: 'pointer', outline: 'none',
+                  transition: 'border-color 0.15s',
+                }}
+              >
+                {PAGE_SIZES.map(s => <option key={s} value={s}>{s} 条/页</option>)}
+              </select>
+              <svg style={{ position: 'absolute', right: 7, pointerEvents: 'none' }} width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 4l4 4 4-4" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </div>
         </div>
       )}
 

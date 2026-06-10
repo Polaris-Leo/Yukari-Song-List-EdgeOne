@@ -79,6 +79,84 @@ function PgBtn({ active, disabled, onClick, children, ...rest }:
   )
 }
 
+/* ── Semi Design style dropdown for page-size selector ── */
+function SizeDropdown({ value, options, onChange }: {
+  value: number; options: number[]; onChange: (v: number) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div ref={ref} style={{ position: 'relative', display: 'inline-flex' }}>
+      {/* Trigger */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          height: 32, padding: '0 10px',
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          border: `1px solid ${open ? '#4f46e5' : '#e2e8f0'}`,
+          borderRadius: 6, background: 'white',
+          color: '#374151', fontSize: '0.8125rem',
+          cursor: 'pointer', outline: 'none',
+          transition: 'border-color 0.15s',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {value} 条/页
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
+          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+          <path d="M2 4l4 4 4-4" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      {/* Menu */}
+      {open && (
+        <div style={{
+          position: 'absolute', bottom: 'calc(100% + 6px)', right: 0,
+          background: 'white', borderRadius: 8,
+          boxShadow: '0 6px 16px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.06)',
+          border: '1px solid #f0f0f0',
+          padding: '4px 0', minWidth: 100, zIndex: 200,
+        }}>
+          {options.map(opt => (
+            <div
+              key={opt}
+              onClick={() => { onChange(opt); setOpen(false) }}
+              style={{
+                height: 36, padding: '0 16px',
+                display: 'flex', alignItems: 'center',
+                fontSize: '0.875rem', cursor: 'pointer',
+                color: opt === value ? '#4f46e5' : '#374151',
+                fontWeight: opt === value ? 600 : 400,
+                background: 'transparent',
+                transition: 'background 0.1s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#f5f5f5')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              {opt} 条/页
+              {opt === value && (
+                <svg style={{ marginLeft: 'auto' }} width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M2 7l4 4 6-7" stroke="#4f46e5" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ── Shared style tokens ── */
 const card: React.CSSProperties = {
   background: 'rgba(255,255,255,0.85)', borderRadius: '1rem',
@@ -393,26 +471,12 @@ export default function AdminPage() {
               </>
             )}
 
-            {/* Page size selector (Semi Design showSizeChanger style) */}
-            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-              <select
-                value={pageSize}
-                onChange={e => { setPageSize(Number(e.target.value)); setCurrentPage(1) }}
-                style={{
-                  appearance: 'none', WebkitAppearance: 'none',
-                  height: 32, padding: '0 26px 0 10px',
-                  border: '1px solid #e2e8f0', borderRadius: '6px',
-                  background: 'white', color: '#374151',
-                  fontSize: '0.8125rem', cursor: 'pointer', outline: 'none',
-                  transition: 'border-color 0.15s',
-                }}
-              >
-                {PAGE_SIZES.map(s => <option key={s} value={s}>{s} 条/页</option>)}
-              </select>
-              <svg style={{ position: 'absolute', right: 7, pointerEvents: 'none' }} width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M2 4l4 4 4-4" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
+            {/* Page size selector — Semi Design Dropdown style */}
+            <SizeDropdown
+              value={pageSize}
+              options={PAGE_SIZES}
+              onChange={v => { setPageSize(v); setCurrentPage(1) }}
+            />
           </div>
         </div>
       )}

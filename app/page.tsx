@@ -39,6 +39,31 @@ const copyCommand = async (title: string) => {
   return text
 }
 
+function PgBtn({ active, disabled, onClick, children, ...rest }:
+  React.ButtonHTMLAttributes<HTMLButtonElement> & { active: boolean }
+) {
+  return (
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      {...rest}
+      style={{
+        minWidth: 32, height: 32, padding: '0 0.375rem',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        borderRadius: '0.5rem', fontSize: '0.875rem', fontWeight: active ? 600 : 400,
+        border: active ? '1px solid #4f46e5' : '1px solid #e2e8f0',
+        background: active ? '#4f46e5' : 'white',
+        color: active ? 'white' : disabled ? '#c0ccd8' : '#374151',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        transition: 'all 0.15s',
+        touchAction: 'manipulation',
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
 export default function HomePage() {
   const [songs, setSongs]             = useState<Song[]>([])
   const [total, setTotal]             = useState(0)
@@ -129,8 +154,20 @@ export default function HomePage() {
     border: 'none', cursor: 'pointer', transition: 'all 0.3s ease',
     marginTop: 'auto', touchAction: 'manipulation',
   }
-  const btnPage: React.CSSProperties = {
-    ...btnCopy, width: 'auto', padding: '0.5rem 1.25rem', marginTop: 0,
+  /* ── pagination page-number builder ── */
+  function getPageItems(current: number, total: number): (number | 'le' | 're')[] {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+    const delta = 2
+    const lo = Math.max(2, current - delta)
+    const hi = Math.min(total - 1, current + delta)
+    const mid: number[] = []
+    for (let i = lo; i <= hi; i++) mid.push(i)
+    const result: (number | 'le' | 're')[] = [1]
+    if (lo > 2)          result.push('le')
+    result.push(...mid)
+    if (hi < total - 1)  result.push('re')
+    result.push(total)
+    return result
   }
 
   return (
@@ -329,24 +366,48 @@ export default function HomePage() {
 
         {/* ── Pagination ── */}
         {totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', paddingBottom: '1rem' }}>
-            <button
-              disabled={currentPage <= 1 || loading}
-              onClick={() => setCurrentPage(p => p - 1)}
-              style={{ ...btnPage, background: currentPage <= 1 ? '#cbd5e1' : undefined, cursor: currentPage <= 1 ? 'not-allowed' : 'pointer' }}
-            >
-              上一页
-            </button>
-            <span style={{ fontWeight: 'bold', color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              disabled={currentPage >= totalPages || loading}
-              onClick={() => setCurrentPage(p => p + 1)}
-              style={{ ...btnPage, background: currentPage >= totalPages ? '#cbd5e1' : undefined, cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer' }}
-            >
-              下一页
-            </button>
+          <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: '1rem' }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+              padding: '0.625rem 0.875rem',
+              background: 'rgba(255,255,255,0.82)',
+              border: '1px solid rgba(255,255,255,0.6)',
+              borderRadius: '0.875rem',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+              flexWrap: 'wrap',
+            }}>
+              {/* Prev */}
+              <PgBtn
+                disabled={currentPage <= 1 || loading}
+                onClick={() => setCurrentPage(p => p - 1)}
+                active={false}
+                aria-label="上一页"
+              >
+                <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M6 1L1 6l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </PgBtn>
+
+              {/* Page numbers */}
+              {getPageItems(currentPage, totalPages).map((item, i) =>
+                item === 'le' || item === 're' ? (
+                  <span key={item + i} style={{ width: 32, textAlign: 'center', color: '#94a3b8', fontSize: '0.875rem', userSelect: 'none' }}>···</span>
+                ) : (
+                  <PgBtn key={item} active={item === currentPage} disabled={loading} onClick={() => setCurrentPage(item as number)}>
+                    {item}
+                  </PgBtn>
+                )
+              )}
+
+              {/* Next */}
+              <PgBtn
+                disabled={currentPage >= totalPages || loading}
+                onClick={() => setCurrentPage(p => p + 1)}
+                active={false}
+                aria-label="下一页"
+              >
+                <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </PgBtn>
+            </div>
           </div>
         )}
       </div>

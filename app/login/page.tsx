@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Music, Lock } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -16,7 +15,7 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/auth/login', {
+      const res  = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -35,69 +34,80 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <div style={{
+      display: 'flex', justifyContent: 'center', alignItems: 'center',
+      minHeight: '100vh', minHeight: '100dvh', padding: '1rem',
+    }}>
+      <div style={{
+        background: 'rgba(255,255,255,0.9)', borderRadius: '1rem', padding: '3rem',
+        width: '500px', maxWidth: '90vw',
+        border: '1px solid rgba(255,255,255,0.6)', backdropFilter: 'blur(12px)',
+        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+        animation: 'slideUp 0.5s ease-out',
+      }}>
+        <h1 style={{ marginBottom: '2rem', color: '#1e293b', textAlign: 'center', fontSize: '1.5rem', fontWeight: 700 }}>
+          管理员登录
+        </h1>
 
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 justify-center mb-8">
-          <div className="w-9 h-9 rounded-xl bg-indigo-500 flex items-center justify-center shadow-sm">
-            <Music className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-lg font-bold text-zinc-900">优花璃点歌台</span>
+        <div style={{ color: '#ef4444', fontSize: '0.875rem', textAlign: 'center', marginBottom: '1rem', minHeight: '1.25rem' }}>
+          {error}
         </div>
 
-        {/* Card */}
-        <div className="bg-white border border-zinc-200 rounded-2xl p-7 shadow-xs">
-          <div className="flex items-center gap-2 mb-6">
-            <Lock className="h-4 w-4 text-zinc-400" />
-            <h1 className="text-sm font-semibold text-zinc-700">管理员登录</h1>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#475569', fontSize: '0.875rem', fontWeight: 500 }}>
+              用户名
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              placeholder="请输入用户名"
+              required
+              autoFocus
+              autoComplete="username"
+              style={{
+                width: '100%', padding: '0.75rem 1rem',
+                background: 'rgba(255,255,255,0.9)', border: '1px solid #cbd5e1',
+                borderRadius: '0.5rem', color: '#1e293b', fontSize: '1rem',
+                outline: 'none', transition: 'all 0.2s',
+              }}
+            />
           </div>
-
-          {error && (
-            <div className="mb-4 px-3.5 py-2.5 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-zinc-600 mb-1.5">用户名</label>
-              <input
-                type="text"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                className="w-full px-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-lg outline-none focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
-                placeholder="请输入用户名"
-                required
-                autoFocus
-                autoComplete="username"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-zinc-600 mb-1.5">密码</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full px-3 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-lg outline-none focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
-                placeholder="请输入密码"
-                required
-                autoComplete="current-password"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 text-sm font-semibold text-white bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 rounded-lg disabled:opacity-60 disabled:cursor-not-allowed transition-colors mt-1"
-            >
-              {loading ? '登录中...' : '登录'}
-            </button>
-          </form>
-        </div>
-
-        <p className="text-center text-xs text-zinc-400 mt-6">
-          <a href="/" className="hover:text-indigo-500 transition-colors">← 返回歌单</a>
-        </p>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#475569', fontSize: '0.875rem', fontWeight: 500 }}>
+              密码
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="请输入密码"
+              required
+              autoComplete="current-password"
+              style={{
+                width: '100%', padding: '0.75rem 1rem',
+                background: 'rgba(255,255,255,0.9)', border: '1px solid #cbd5e1',
+                borderRadius: '0.5rem', color: '#1e293b', fontSize: '1rem',
+                outline: 'none', transition: 'all 0.2s',
+              }}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%', padding: '0.75rem 1.5rem', borderRadius: '0.5rem',
+              border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+              fontWeight: 600, background: '#4f46e5', color: 'white',
+              fontSize: '1rem', marginTop: '0.5rem',
+              opacity: loading ? 0.7 : 1, transition: 'all 0.2s',
+              touchAction: 'manipulation',
+            }}
+          >
+            {loading ? '登录中...' : '登录'}
+          </button>
+        </form>
       </div>
     </div>
   )

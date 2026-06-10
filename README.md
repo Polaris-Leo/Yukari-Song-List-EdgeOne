@@ -43,6 +43,7 @@
 │   │       └── logout.js   # POST /api/auth/logout
 │   └── admin/
 │       └── api/
+│           ├── verify.js       # GET /admin/api/verify（Session 有效性验证）
 │           ├── songs.js        # POST /admin/api/songs（新增）
 │           ├── songs/
 │           │   └── [id].js     # PUT / DELETE /admin/api/songs/:id
@@ -60,7 +61,7 @@
 |------|------|------|
 | GET | `/api/songs` | 获取歌曲列表，支持 `page` `limit` `search` `language` `seed` 参数 |
 | GET | `/api/songs/random` | 随机返回一首歌 |
-| POST | `/api/auth/login` | 登录，body: `{ username, password }` |
+| POST | `/api/auth/login` | 登录，body: `{ username, password }`；凭据由环境变量决定，未配置时返回 500 |
 | POST | `/api/auth/logout` | 登出，清除 Session Cookie |
 
 > `seed` 参数为整数，非零时对歌单做确定性随机排序（LCG + Fisher-Yates）；为 0 时按 ID 降序。
@@ -69,6 +70,7 @@
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
+| GET | `/admin/api/verify` | 验证 Session 有效性，用于前端挂载时的服务端鉴权 |
 | POST | `/admin/api/songs` | 新增歌曲，body: `{ title, artist, language, status }` |
 | PUT | `/admin/api/songs/:id` | 编辑歌曲 |
 | DELETE | `/admin/api/songs/:id` | 删除单首歌曲 |
@@ -80,12 +82,12 @@
 
 1. 在 [EdgeOne 控制台](https://console.cloud.tencent.com/edgeone) 创建 Pages 项目，关联本仓库。
 2. 创建 **KV 命名空间**，并在项目设置中完成绑定，变量名须与代码一致。
-3. 在项目设置中配置环境变量：
+3. 在项目设置中配置环境变量（**两项均为必填，未配置则登录接口返回 500**）：
 
    | 变量名 | 说明 |
    |--------|------|
-   | `ADMIN_USER` | 管理员用户名（默认 `Yukari`）|
-   | `ADMIN_PASSWORD` | 管理员密码（**请务必修改默认值**）|
+   | `ADMIN_USER` | 管理员用户名 |
+   | `ADMIN_PASSWORD` | 管理员密码 |
 
 4. 触发部署，EdgeOne 会自动构建并将 Functions 分发至边缘节点。
 5. 首次部署完成后访问 `/admin/api/init` 初始化 KV 存储，之后可通过管理后台导入数据。

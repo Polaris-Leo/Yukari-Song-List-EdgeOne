@@ -25,6 +25,13 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.26.5/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+    <script>
+        // Fast client-side guard: redirect immediately if session cookie is absent.
+        // The real auth check happens server-side via /admin/api/verify on mount.
+        if (!document.cookie.includes('yukari_admin_session=')) {
+            window.location.replace('/login.html');
+        }
+    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -467,6 +474,17 @@
             const [toast, setToast] = useState(null);
             const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
+            const [authed, setAuthed] = useState(false);
+
+            /* Server-side session verification on mount */
+            useEffect(() => {
+                axios.get('/admin/api/verify').then(() => {
+                    setAuthed(true);
+                }).catch(() => {
+                    window.location.replace('/login.html');
+                });
+            }, []);
+
             /* search debounce */
             const searchMounted = useRef(false);
             useEffect(() => {
@@ -475,7 +493,7 @@
                 return () => clearTimeout(t);
             }, [searchTerm]);
 
-            useEffect(() => { fetchSongs(currentPage); }, [currentPage, activeLang, pageSize]);
+            useEffect(() => { if (authed) fetchSongs(currentPage); }, [currentPage, activeLang, pageSize, authed]);
 
             /* clear selection when page/filter/size changes */
             useEffect(() => { setSelectedIds(new Set()); }, [currentPage, activeLang, pageSize]);
@@ -639,6 +657,8 @@
 
             /* ── Render ── */
             const isAllOnPage = songs.length > 0 && songs.every(s => selectedIds.has(s.id));
+
+            if (!authed) return null;
 
             return (
                 <div className="page">
